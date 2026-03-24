@@ -1,4 +1,5 @@
 import { UserData, Scores, ProfileType } from './types';
+export type { ProfileType };
 
 export function calculateBMR(weight: number, heightInches: number, age: number): number {
   return 655 + (4.35 * weight) + (4.7 * heightInches) - (4.7 * age);
