@@ -6,17 +6,37 @@ import { calculateScores, assignProfile, profileNames, profileDescriptions, calc
 import { restaurantOrders, restaurantList } from '@/lib/restaurants';
 import { getStuckItems, getMorningProtein, getStepSuggestion, getActionItems, getWaterTarget } from '@/lib/content';
 
-function getMealExample(calories: number): string {
+function getMealExampleItems(calories: number): { emoji: string; meal: string; cal: number }[] {
   if (calories < 1400) {
-    return "a yogurt parfait for breakfast, a grilled chicken salad for lunch, and a small salmon dinner.";
+    return [
+      { emoji: '🥣', meal: 'Greek yogurt with granola', cal: 280 },
+      { emoji: '🥗', meal: 'Grilled chicken salad', cal: 420 },
+      { emoji: '🍽️', meal: 'Salmon with veggies', cal: 480 },
+    ];
   } else if (calories < 1700) {
-    return "a coffee with cream and oatmeal, a turkey wrap for lunch, and grilled chicken with veggies for dinner.";
+    return [
+      { emoji: '☕', meal: 'Coffee with cream + oatmeal', cal: 350 },
+      { emoji: '🌯', meal: 'Turkey wrap with chips', cal: 520 },
+      { emoji: '🍗', meal: 'Grilled chicken & veggies', cal: 550 },
+    ];
   } else if (calories < 2000) {
-    return "a morning latte with cream, a turkey sandwich for lunch, and a chicken dinner with rice.";
+    return [
+      { emoji: '☕', meal: 'Latte with cream + toast', cal: 380 },
+      { emoji: '🥪', meal: 'Turkey sandwich + drink', cal: 620 },
+      { emoji: '🍚', meal: 'Chicken dinner with rice', cal: 680 },
+    ];
   } else if (calories < 2300) {
-    return "a breakfast sandwich, a Chipotle bowl for lunch, and pasta with chicken for dinner.";
+    return [
+      { emoji: '🍳', meal: 'Breakfast sandwich + coffee', cal: 520 },
+      { emoji: '🌯', meal: 'Chipotle bowl', cal: 740 },
+      { emoji: '🍝', meal: 'Pasta with chicken', cal: 720 },
+    ];
   } else {
-    return "a large coffee and muffin, a burger with fries for lunch, and a full pasta dinner with bread.";
+    return [
+      { emoji: '☕', meal: 'Large coffee + muffin', cal: 580 },
+      { emoji: '🍔', meal: 'Burger with fries', cal: 860 },
+      { emoji: '🍝', meal: 'Pasta dinner with bread', cal: 780 },
+    ];
   }
 }
 
@@ -161,31 +181,21 @@ function Screen1({ data, update, maintenance, bodyFat, goalBodyFat }: {
           </div>
 
           {/* Dynamic meal context */}
-          <div className="border-t border-white/10 pt-3">
-            <p className="text-white/50 text-xs italic leading-relaxed">
-              &ldquo;{maintenance.toLocaleString()} cal = {getMealExample(maintenance)} That&apos;s it. That&apos;s your whole day.&rdquo;
-            </p>
-            <p className="text-white/40 text-[10px] mt-1">Most women eat past this without realizing it.</p>
-          </div>
-
-          {/* Body fat + timeline */}
-          <div className="border-t border-white/10 pt-4 grid grid-cols-3 gap-2">
-            <div>
-              <div className="text-[#888] text-[10px] uppercase mb-1">Body Fat</div>
-              <div className="text-[#C8A951] text-xl font-display">{bodyFat}%</div>
+          <div className="border-t border-white/10 pt-4">
+            <p className="text-[#C8A951] text-[10px] tracking-widest uppercase mb-3">WHAT {maintenance.toLocaleString()} CALORIES LOOKS LIKE</p>
+            <div className="space-y-2">
+              {getMealExampleItems(maintenance).map((item, i) => (
+                <div key={i} className="flex items-center gap-3 bg-[#1a1a1a] rounded-xl px-4 py-3">
+                  <span className="text-lg">{item.emoji}</span>
+                  <div className="flex-1">
+                    <span className="text-white text-sm">{item.meal}</span>
+                  </div>
+                  <span className="text-[#888] text-xs">{item.cal} cal</span>
+                </div>
+              ))}
             </div>
-            <div>
-              <div className="text-[#888] text-[10px] uppercase mb-1">At Goal</div>
-              <div className="text-[#C8A951] text-xl font-display">{goalBodyFat}%</div>
-            </div>
-            <div>
-              <div className="text-[#888] text-[10px] uppercase mb-1">Timeline</div>
-              <div className="text-[#C8A951] text-xl font-display">~{Math.max(1, Math.round((data.weight - data.goalWeight) / 4))}mo</div>
-            </div>
-          </div>
-
-          <div className="text-center">
-            <span className="text-white/40 text-[10px]">{data.weight - data.goalWeight > 0 ? `${data.weight - data.goalWeight} lbs to lose at a healthy pace` : 'You\'re at your goal weight!'}</span>
+            <p className="text-white/40 text-xs mt-3 text-center italic">That&apos;s it. That&apos;s your whole day.</p>
+            <p className="text-[#C8A951]/60 text-[10px] mt-1 text-center tracking-wide">MOST WOMEN EAT PAST THIS WITHOUT REALIZING IT.</p>
           </div>
         </div>
       </Card>
