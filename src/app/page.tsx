@@ -6,6 +6,20 @@ import { calculateScores, assignProfile, profileNames, profileDescriptions, calc
 import { restaurantOrders, restaurantList } from '@/lib/restaurants';
 import { getStuckItems, getMorningProtein, getStepSuggestion, getActionItems, getWaterTarget } from '@/lib/content';
 
+function getMealExample(calories: number): string {
+  if (calories < 1400) {
+    return "a yogurt parfait for breakfast, a grilled chicken salad for lunch, and a small salmon dinner.";
+  } else if (calories < 1700) {
+    return "a coffee with cream and oatmeal, a turkey wrap for lunch, and grilled chicken with veggies for dinner.";
+  } else if (calories < 2000) {
+    return "a morning latte with cream, a turkey sandwich for lunch, and a chicken dinner with rice.";
+  } else if (calories < 2300) {
+    return "a breakfast sandwich, a Chipotle bowl for lunch, and pasta with chicken for dinner.";
+  } else {
+    return "a large coffee and muffin, a burger with fries for lunch, and a full pasta dinner with bread.";
+  }
+}
+
 export default function Home() {
   const [screen, setScreen] = useState(0);
   const [data, setData] = useState<UserData>(defaultUserData);
@@ -129,21 +143,49 @@ function Screen1({ data, update, maintenance, bodyFat, goalBodyFat }: {
       </Card>
 
       <Card label="METABOLIC INSIGHT" gold>
-        <div className="flex items-center justify-between mb-4">
-          <span className="text-white/80 text-sm">Daily Caloric<br/>Burn</span>
-          <div className="text-right">
-            <span className="text-4xl font-display text-white">{maintenance.toLocaleString()}</span>
-            <span className="text-[#888] text-xs block">CAL/DAY</span>
+        <div className="space-y-4">
+          {/* Maintain vs Lose */}
+          <div className="flex items-center justify-between">
+            <span className="text-white/60 text-sm">To stay where you are</span>
+            <div className="text-right">
+              <span className="text-3xl font-display text-white">{maintenance.toLocaleString()}</span>
+              <span className="text-[#888] text-xs ml-1">cal/day</span>
+            </div>
           </div>
-        </div>
-        <div className="border-t border-white/10 pt-4 flex justify-between">
-          <div>
-            <div className="text-[#888] text-xs uppercase mb-1">Est. Body Fat</div>
-            <div className="text-[#C8A951] text-2xl font-display">{bodyFat}%</div>
+          <div className="flex items-center justify-between">
+            <span className="text-[#C8A951] text-sm font-semibold">To lose 1 lb/week</span>
+            <div className="text-right">
+              <span className="text-3xl font-display text-[#C8A951]">{Math.max(1200, maintenance - 500).toLocaleString()}</span>
+              <span className="text-[#C8A951]/60 text-xs ml-1">cal/day</span>
+            </div>
           </div>
-          <div>
-            <div className="text-[#888] text-xs uppercase mb-1">At Goal Weight</div>
-            <div className="text-[#C8A951] text-2xl font-display">{goalBodyFat}%</div>
+
+          {/* Dynamic meal context */}
+          <div className="border-t border-white/10 pt-3">
+            <p className="text-white/50 text-xs italic leading-relaxed">
+              &ldquo;{maintenance.toLocaleString()} cal = {getMealExample(maintenance)} That&apos;s it. That&apos;s your whole day.&rdquo;
+            </p>
+            <p className="text-white/40 text-[10px] mt-1">Most women eat past this without realizing it.</p>
+          </div>
+
+          {/* Body fat + timeline */}
+          <div className="border-t border-white/10 pt-4 grid grid-cols-3 gap-2">
+            <div>
+              <div className="text-[#888] text-[10px] uppercase mb-1">Body Fat</div>
+              <div className="text-[#C8A951] text-xl font-display">{bodyFat}%</div>
+            </div>
+            <div>
+              <div className="text-[#888] text-[10px] uppercase mb-1">At Goal</div>
+              <div className="text-[#C8A951] text-xl font-display">{goalBodyFat}%</div>
+            </div>
+            <div>
+              <div className="text-[#888] text-[10px] uppercase mb-1">Timeline</div>
+              <div className="text-[#C8A951] text-xl font-display">~{Math.max(1, Math.round((data.weight - data.goalWeight) / 4))}mo</div>
+            </div>
+          </div>
+
+          <div className="text-center">
+            <span className="text-white/40 text-[10px]">{data.weight - data.goalWeight > 0 ? `${data.weight - data.goalWeight} lbs to lose at a healthy pace` : 'You\'re at your goal weight!'}</span>
           </div>
         </div>
       </Card>
