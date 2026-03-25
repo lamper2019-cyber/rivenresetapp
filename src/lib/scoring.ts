@@ -74,7 +74,7 @@ export function calculateScores(data: UserData): Scores {
   if (['5+', 'Almost every meal'].includes(data.eatingOut)) eliminations -= 2;
   if (data.eatingOut === '3-4') eliminations -= 1;
   if (['Afternoon', 'After dinner', 'Late night'].includes(data.snackTime)) eliminations -= 2;
-  if (['Takeout', "Whatever's easy"].includes(data.dinner)) eliminations -= 1;
+  if (data.breakfast === 'Fast food') eliminations -= 1;
   eliminations = Math.max(1, eliminations);
 
   // ACCOUNTABILITY
@@ -105,47 +105,53 @@ export function assignProfile(data: UserData): ProfileType {
     'repeat-starter': 0,
   };
 
-  // SKIPPER
+  // SKIPPER (max 5 points)
   if (data.breakfast === 'Skip it') scores['skipper']++;
   if (['After dinner', 'Late night'].includes(data.snackTime)) scores['skipper']++;
+  if (data.sugaryDrinks === 'None' || data.sugaryDrinks === '1-3') scores['skipper']++; // skippers don't drink much — they don't eat much period
   if (data.dailySteps === 'Under 3000') scores['skipper']++;
-  if (data.energyAfternoon <= 4) scores['skipper']++;
+  if (data.energyAfternoon > 0 && data.energyAfternoon <= 4) scores['skipper']++;
 
-  // SUGAR CRASHER
+  // SUGAR CRASHER (max 5 points)
   if (['Coffee and pastry', 'Cereal or toast', 'Smoothie'].includes(data.breakfast)) scores['sugar-crasher']++;
   if (data.snackTime === 'Afternoon') scores['sugar-crasher']++;
   if (['4-7', 'Daily'].includes(data.sugaryDrinks)) scores['sugar-crasher']++;
-  if (data.energyAfternoon <= 4) scores['sugar-crasher']++;
-  if (data.energyMorning >= 7) scores['sugar-crasher']++;
+  if (data.energyAfternoon > 0 && data.energyAfternoon <= 4) scores['sugar-crasher']++;
+  if (data.energyMorning > 0 && data.energyMorning >= 7) scores['sugar-crasher']++;
 
-  // BUSY MOM
+  // BUSY MOM (max 5 points)
   if (['1-2 kids', '3+ kids'].includes(data.kids)) scores['busy-mom']++;
   if (data.stressLevel >= 7) scores['busy-mom']++;
-  if (data.sleepQuality <= 5) scores['busy-mom']++;
+  if (data.sleepQuality > 0 && data.sleepQuality <= 5) scores['busy-mom']++;
   if (['Skip it', 'Coffee and pastry'].includes(data.breakfast)) scores['busy-mom']++;
+  if (['Cook at home', "Whatever's easy"].includes(data.whyNow) === false && data.kids !== 'No kids' && data.kids !== '') scores['busy-mom']++; // extra point for moms
 
-  // RESTAURANT REGULAR
-  if (['5+', 'Almost every meal'].includes(data.eatingOut)) scores['restaurant-regular']++;
-  if (['Takeout', 'Restaurant'].includes(data.dinner)) scores['restaurant-regular']++;
-  if (data.lunch === 'Fast food') scores['restaurant-regular']++;
+  // RESTAURANT REGULAR (max 5 points)
+  if (['5+', 'Almost every meal'].includes(data.eatingOut)) { scores['restaurant-regular'] += 2; } // heavy weight — this is the key signal
+  else if (['3-4'].includes(data.eatingOut)) scores['restaurant-regular']++;
   if (data.breakfast === 'Fast food') scores['restaurant-regular']++;
+  if (data.restaurants.length >= 3) scores['restaurant-regular']++; // picked max restaurants
+  if (data.sugaryDrinks === '4-7' || data.sugaryDrinks === 'Daily') scores['restaurant-regular']++;
 
-  // REPEAT STARTER
+  // REPEAT STARTER (max 5 points)
   if (['5-10 years', '10+ years'].includes(data.howLong)) scores['repeat-starter']++;
   if (data.triedBefore.length >= 3) scores['repeat-starter']++;
   if (['Too restrictive', "Couldn't maintain"].includes(data.whyStopped)) scores['repeat-starter']++;
-  if (data.readiness <= 5) scores['repeat-starter']++;
+  if (data.readiness > 0 && data.readiness <= 5) scores['repeat-starter']++;
   if (data.coachBefore === "Yes but didn't work") scores['repeat-starter']++;
 
-  // Find highest. Priority: Repeat Starter > Busy Mom > Sugar Crasher > Skipper > Restaurant Regular
+  // Find highest. Priority order for ties: Repeat Starter > Busy Mom > Sugar Crasher > Skipper > Restaurant Regular
   const priority: ProfileType[] = ['repeat-starter', 'busy-mom', 'sugar-crasher', 'skipper', 'restaurant-regular'];
-  let maxScore = 0;
-  let winner: ProfileType = 'sugar-crasher';
+  let maxScore = -1;
+  let winner: ProfileType = 'repeat-starter'; // default to highest priority
 
   for (const p of priority) {
-    if (scores[p] > maxScore) {
-      maxScore = scores[p];
-      winner = p;
+    if (scores[p] >= maxScore) {
+      // First time or higher score — take it. Equal score keeps priority order (first in list wins).
+      if (scores[p] > maxScore) {
+        maxScore = scores[p];
+        winner = p;
+      }
     }
   }
 
